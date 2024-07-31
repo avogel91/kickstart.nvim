@@ -131,7 +131,7 @@ return {
           hide_during_completion = true,
           debounce = 75,
           keymap = {
-            accept = '<D-CR>', -- FIXME: CMD+Enter works in alacritty, but not in alacritty+tmux. Something with keymap somehow?
+            accept = '<Tab>',
             accept_word = false,
             accept_line = false,
             next = '<M-]>',
@@ -154,5 +154,6 @@ return {
         server_opts_overrides = {},
       }
     end,
+    vim.keymap.set('n', '<leader>cp', '<cmd>lua require("copilot.suggestion").toggle_auto_trigger()<CR>', { desc = 'Toggle Copilot' }),
   },
 }
