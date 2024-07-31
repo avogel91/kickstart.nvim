@@ -31,6 +31,15 @@ return {
         options = {
           component_separators = '',
           section_separators = { left = '', right = '' },
+          disabled_filetypes = {
+            statusline = {
+              'dashboard',
+              'aerial',
+              'dapui_.',
+              'neo%-tree',
+              'NvimTree',
+            },
+          },
         },
         sections = {
           lualine_a = { { 'mode', separator = { left = '' }, right_padding = 2 } },
@@ -67,6 +76,82 @@ return {
     config = function()
       require('nvim-tree').setup {
         vim.keymap.set('n', '<leader>o', '<cmd>NvimTreeToggle<CR>', { desc = 'Toggle Nvim Tree' }),
+      }
+    end,
+  },
+  {
+    'mfussenegger/nvim-dap',
+    dependencies = {
+      'leoluz/nvim-dap-go',
+      'rcarriga/nvim-dap-ui',
+      'theHamsta/nvim-dap-virtual-text',
+      'nvim-neotest/nvim-nio',
+      'williamboman/mason.nvim',
+    },
+    config = function()
+      local dap = require 'dap'
+
+      require('dapui').setup()
+      require('dap-go').setup()
+
+      -- ui.toggle()
+      -- Keymap for DAP
+      vim.keymap.set('n', '<leader>b', dap.toggle_breakpoint)
+      vim.keymap.set('n', '<leader>gb', dap.run_to_cursor)
+      vim.keymap.set('n', '<leader>du', "<cmd>lua require'dapui'.toggle()<cr>", { desc = '[D]ebug [U]I' })
+      -- Icon customisation
+      vim.fn.sign_define('DapBreakpoint', { text = '◎', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
+      vim.fn.sign_define('DapStopped', { text = '⌲', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
+    end,
+  },
+  {
+    'zbirenbaum/copilot.lua',
+    cmd = 'Copilot',
+    event = 'InsertEnter',
+    config = function()
+      require('copilot').setup {
+        panel = {
+          enabled = true,
+          auto_refresh = false,
+          keymap = {
+            jump_prev = '[[',
+            jump_next = ']]',
+            accept = '<CR>',
+            refresh = 'gr',
+            open = '<M-CR>',
+          },
+          layout = {
+            position = 'bottom', -- | top | left | right
+            ratio = 0.4,
+          },
+        },
+        suggestion = {
+          enabled = true,
+          auto_trigger = true,
+          hide_during_completion = true,
+          debounce = 75,
+          keymap = {
+            accept = '<D-CR>', -- FIXME: CMD+Enter works in alacritty, but not in alacritty+tmux. Something with keymap somehow?
+            accept_word = false,
+            accept_line = false,
+            next = '<M-]>',
+            prev = '<M-[>',
+            dismiss = '<C-]>',
+          },
+        },
+        filetypes = {
+          yaml = false,
+          markdown = false,
+          help = false,
+          gitcommit = false,
+          gitrebase = false,
+          hgcommit = false,
+          svn = false,
+          cvs = false,
+          ['.'] = false,
+        },
+        copilot_node_command = 'node', -- Node.js version must be > 18.x
+        server_opts_overrides = {},
       }
     end,
   },
