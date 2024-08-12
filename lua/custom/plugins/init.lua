@@ -43,7 +43,7 @@ return {
         },
         sections = {
           lualine_a = { { 'mode', separator = { left = '' }, right_padding = 2 } },
-          lualine_b = { 'filename', 'branch' },
+          lualine_b = { { 'filename', path = 2 }, 'branch' },
           lualine_c = {
             '%=', --[[ add your center compoentnts here in place of this comment ]]
           },
@@ -75,7 +75,9 @@ return {
     },
     config = function()
       require('nvim-tree').setup {
-        vim.keymap.set('n', '<leader>o', '<cmd>NvimTreeToggle<CR>', { desc = 'Toggle Nvim Tree' }),
+        vim.keymap.set('n', '<leader>o', '<cmd>NvimTreeOpen<CR>', { desc = 'Nvim Tree [O]pen' }),
+        vim.keymap.set('n', '<leader>e', '<cmd>NvimTreeToggle<CR>', { desc = 'Toggle Nvim Tree' }),
+        vim.keymap.set('n', '<leader>tc', '<cmd>NvimTreeCollapse<CR>', { desc = 'Nvim [T]ree [C]ollapse' }),
       }
     end,
   },
@@ -98,6 +100,7 @@ return {
       -- Keymap for DAP
       vim.keymap.set('n', '<leader>b', dap.toggle_breakpoint)
       vim.keymap.set('n', '<leader>gb', dap.run_to_cursor)
+      vim.keymap.set('n', '<leader>ds', '<cmd>lua dap.continue()<CR>')
       vim.keymap.set('n', '<leader>du', "<cmd>lua require'dapui'.toggle()<cr>", { desc = '[D]ebug [U]I' })
       -- Icon customisation
       vim.fn.sign_define('DapBreakpoint', { text = '◎', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
