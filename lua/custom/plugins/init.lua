@@ -78,6 +78,16 @@ return {
         vim.keymap.set('n', '<leader>o', '<cmd>NvimTreeOpen<CR>', { desc = 'Nvim Tree [O]pen' }),
         vim.keymap.set('n', '<leader>e', '<cmd>NvimTreeToggle<CR>', { desc = 'Toggle Nvim Tree' }),
         vim.keymap.set('n', '<leader>tc', '<cmd>NvimTreeCollapse<CR>', { desc = 'Nvim [T]ree [C]ollapse' }),
+        update_focused_file = {
+          enable = true,
+        },
+        filters = {
+          dotfiles = false,
+        },
+        git = {
+          enable = true,
+          ignore = false,
+        },
       }
     end,
   },
@@ -158,5 +168,71 @@ return {
       }
     end,
     vim.keymap.set('n', '<leader>cp', '<cmd>lua require("copilot.suggestion").toggle_auto_trigger()<CR>', { desc = 'Toggle Copilot' }),
+  },
+  {
+    'f-person/git-blame.nvim',
+    -- load the plugin at startup
+    event = 'VeryLazy',
+    -- Because of the keys part, you will be lazy loading this plugin.
+    -- The plugin wil only load once one of the keys is used.
+    -- If you want to load the plugin at startup, add something like event = "VeryLazy",
+    -- or lazy = false. One of both options will work.
+    -- opts = {
+    --     -- your configuration comes here
+    --     -- for example
+    --     enabled = true,  -- if you want to enable the plugin
+    --     message_template = " <summary> • <date> • <author> • <<sha>>", -- template for the blame message, check the Message template section for more options
+    --     date_format = "%m-%d-%Y %H:%M:%S", -- template for the date, check Date format section for more options
+    --     virtual_text_column = 1,  -- virtual text start column, check Start virtual text at column section for more options
+    -- },
+    config = function()
+      -- your configuration comes here
+      -- for example
+      require('gitblame').setup {
+        enabled = true, -- if you want to enable the plugin
+        message_template = ' <summary> • <date> • <author> • <<sha>>', -- template for the blame message, check the Message template section for more options
+        date_format = '%m-%d-%Y %H:%M:%S', -- template for the date, check Date format section for more options
+        virtual_text_column = 1, -- virtual text start column, check Start virtual text at column section for more options
+      }
+      vim.keymap.set('n', '<leader>gb', '<cmd>GitBlameToggle<CR>', { desc = 'Toggle Git Blame' })
+    end,
+  },
+  {
+    'nvim-treesitter/nvim-treesitter-context',
+    -- load the plugin at startup
+    event = 'VeryLazy',
+    -- Because of the keys part, you will be lazy loading this plugin.
+    -- The plugin wil only load once one of the keys is used.
+    -- If you want to load the plugin at startup, add something like event = "VeryLazy",
+    -- or lazy = false. One of both options will work.
+    -- opts = {
+    --     -- your configuration comes here
+    --     -- for example
+    --     enabled = true,  -- if you want to enable the plugin
+    --     message_template = " <summary> • <date> • <author> • <<sha>>", -- template for the blame message, check the Message template section for more options
+    --     date_format = "%m-%d-%Y %H:%M:%S", -- template for the date, check Date format section for more options
+    --     virtual_text_column = 1,  -- virtual text start column, check Start virtual text at column section for more options
+    -- },
+    config = function()
+      -- your configuration comes here
+      -- for example
+      require('treesitter-context').setup {
+        enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
+        max_lines = 0, -- How many lines the window should span. Values <= 0 mean no limit.
+        min_window_height = 0, -- Minimum editor window height to enable context. Values <= 0 mean no limit.
+        line_numbers = true,
+        multiline_threshold = 20, -- Maximum number of lines to show for a single context
+        trim_scope = 'outer', -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
+        mode = 'cursor', -- Line used to calculate context. Choices: 'cursor', 'topline'
+        -- Separator between context and content. Should be a single character string, like '-'.
+        -- When separator is set, the context will only show up when there are at least 2 lines above cursorline.
+        separator = nil,
+        zindex = 20, -- The Z-index of the context window
+        on_attach = nil, -- (fun(buf: integer): boolean) return false to disable attaching
+      }
+    end,
+  },
+  {
+    'tpope/vim-fugitive',
   },
 }
