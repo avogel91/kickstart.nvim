@@ -21,6 +21,13 @@ return {
     priority = 1000,
     init = function()
       vim.cmd.colorscheme 'catppuccin-macchiato'
+
+      vim.cmd.hi 'TreesitterContextLineNumberBottom gui=underline guisp=Grey'
+      vim.cmd.hi 'TreesitterContext guibg=none guisp=Grey'
+      vim.cmd.hi 'TreesitterContextLineNumber guibg=none'
+      vim.cmd.hi 'Statusline guibg=none'
+      vim.cmd.hi 'NvimTreeNormal guibg=none'
+      vim.cmd.hi 'NvimTreeRootFolder guibg=none'
     end,
   },
   {
