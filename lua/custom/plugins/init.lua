@@ -19,6 +19,14 @@ return {
     'catppuccin/nvim',
     name = 'catppuccin',
     priority = 1000,
+    opts = {
+      -- add any options here
+      custom_highlights = function(C)
+        return {
+          WinSeparator = { fg = C.base },
+        }
+      end,
+    },
     init = function()
       vim.cmd.colorscheme 'catppuccin-macchiato'
 
@@ -28,15 +36,44 @@ return {
       vim.cmd.hi 'Statusline guibg=none'
       vim.cmd.hi 'NvimTreeNormal guibg=none'
       vim.cmd.hi 'NvimTreeRootFolder guibg=none'
+      vim.cmd.hi 'TelescopeBorder guibg=none guisp=green'
+
+      local colors = require('catppuccin.palettes').get_palette()
+      local TelescopeColor = {
+        TelescopeMatching = { fg = colors.flamingo },
+        TelescopeSelection = { fg = colors.text, bg = colors.surface0, bold = true },
+
+        TelescopePromptPrefix = { bg = colors.mantle },
+        TelescopePromptNormal = { bg = colors.mantle },
+        TelescopeResultsNormal = { bg = colors.mantle },
+        TelescopePreviewNormal = { bg = colors.mantle },
+        TelescopePromptBorder = { bg = colors.mantle, fg = colors.mantle },
+        TelescopeResultsBorder = { bg = colors.mantle, fg = colors.mantle },
+        TelescopePreviewBorder = { bg = colors.mantle, fg = colors.mantle },
+        TelescopePromptTitle = { bg = colors.pink, fg = colors.mantle },
+        TelescopeResultsTitle = { fg = colors.mantle },
+        TelescopePreviewTitle = { bg = colors.green, fg = colors.mantle },
+      }
+
+      for hl, col in pairs(TelescopeColor) do
+        vim.api.nvim_set_hl(0, hl, col)
+      end
     end,
   },
   {
     'nvim-lualine/lualine.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
+      local custom_auto = require 'lualine.themes.auto'
+      custom_auto.normal.c.bg = '#24273a'
+      custom_auto.inactive.a.bg = '#24273a'
+      custom_auto.inactive.b.bg = '#24273a'
+      custom_auto.inactive.c.bg = '#24273a'
       require('lualine').setup {
         options = {
+          theme = custom_auto,
           component_separators = '',
+          icons_enabled = true,
           section_separators = { left = '', right = '' },
           disabled_filetypes = {
             statusline = {
@@ -90,6 +127,10 @@ return {
         },
         filters = {
           dotfiles = false,
+        },
+        view = {
+          width = 50,
+          side = 'right',
         },
         git = {
           enable = true,
