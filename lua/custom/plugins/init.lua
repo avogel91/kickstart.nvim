@@ -33,7 +33,8 @@ return {
       vim.cmd.hi 'TreesitterContextLineNumberBottom gui=underline guisp=Grey'
       vim.cmd.hi 'TreesitterContext guibg=none guisp=Grey'
       vim.cmd.hi 'TreesitterContextLineNumber guibg=none'
-      vim.cmd.hi 'Statusline guibg=none'
+      vim.cmd.hi 'Statusline guibg=none guifg=none'
+      vim.cmd.hi 'StatuslineInactive guibg=none guifg=none'
       vim.cmd.hi 'NvimTreeNormal guibg=none'
       vim.cmd.hi 'NvimTreeRootFolder guibg=none'
       vim.cmd.hi 'TelescopeBorder guibg=none guisp=green'
@@ -82,12 +83,18 @@ return {
               'dapui_.',
               'neo%-tree',
               'NvimTree',
+              'dapui_watches',
+              'dapui_stacks',
+              'dapui_scopes',
+              'dapui_breakpoints',
+              'dapui_variables',
+              'dapui_repl',
             },
           },
         },
         sections = {
           lualine_a = { { 'mode', separator = { left = '' }, right_padding = 2 } },
-          lualine_b = { { 'filename', path = 2 }, 'branch' },
+          lualine_b = { { 'filename', path = 1 }, 'branch' },
           lualine_c = {
             '%=', --[[ add your center compoentnts here in place of this comment ]]
           },
@@ -150,15 +157,78 @@ return {
     },
     config = function()
       local dap = require 'dap'
+      local dapui = require 'dapui'
 
-      require('dapui').setup()
+      dap.adapters.php = {
+        type = 'executable',
+        command = 'node',
+        args = { os.getenv 'HOME' .. '/repositories/vscode-php-debug/out/phpDebug.js' },
+      }
+
+      dap.configurations.php = {
+        -- to run php right from the editor
+        {
+          name = 'run current script',
+          type = 'php',
+          request = 'launch',
+          port = 9003,
+          cwd = '${fileDirname}',
+          program = '${file}',
+          runtimeExecutable = 'php',
+          runtimeArgs = { '-dxdebug.start_with_request=yes' },
+          env = {
+            XDEBUG_CONFIG = 'client_port=${port}',
+            XDEBUG_MODE = 'debug, develop',
+          },
+          breakpoints = {
+            exception = {
+              Notice = false,
+              Warning = false,
+              Error = false,
+              Exception = false,
+              ['*'] = false,
+            },
+          },
+        },
+        -- to listen to any php call
+        {
+          name = 'listen for Xdebug local',
+          type = 'php',
+          request = 'launch',
+          port = 9003,
+        },
+        -- to listen to php call in docker container
+        {
+          name = 'docker',
+          type = 'php',
+          request = 'launch',
+          port = 9003,
+
+          -- this is where your file is in the container
+          pathMappings = {
+            ['/var/www/xentral'] = '${workspaceFolder}',
+          },
+        },
+      }
       require('dap-go').setup()
+      dap.listeners.after.event_initialized['dapui_config'] = function()
+        dapui.open()
+      end
+
+      -- dap.listeners.before.event_terminated['dapui_config'] = function()
+      --   dapui.close()
+      -- end
+      --
+      -- dap.listeners.before.event_exited['dapui_config'] = function()
+      --   dapui.close()
+      -- end
+      dapui.setup()
 
       -- ui.toggle()
       -- Keymap for DAP
       vim.keymap.set('n', '<leader>b', dap.toggle_breakpoint)
       vim.keymap.set('n', '<leader>gb', dap.run_to_cursor)
-      vim.keymap.set('n', '<leader>ds', '<cmd>lua dap.continue()<CR>')
+      vim.keymap.set('n', '<leader>dc', dap.continue)
       vim.keymap.set('n', '<leader>du', "<cmd>lua require'dapui'.toggle()<cr>", { desc = '[D]ebug [U]I' })
       -- Icon customisation
       vim.fn.sign_define('DapBreakpoint', { text = '◎', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
