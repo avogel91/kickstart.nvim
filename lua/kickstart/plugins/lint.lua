@@ -3,10 +3,15 @@ return {
   { -- Linting
     'mfussenegger/nvim-lint',
     event = { 'BufReadPre', 'BufNewFile' },
+    dependencies = {
+      'bufbuild/vim-buf',
+    },
     config = function()
       local lint = require 'lint'
       lint.linters_by_ft = {
         markdown = { 'markdownlint' },
+        json = { 'jsonlint' },
+        proto = { 'protolint' },
       }
 
       -- To allow other plugins to add linters to require('lint').linters_by_ft,
