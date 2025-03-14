@@ -66,6 +66,7 @@ return {
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
       local custom_auto = require 'lualine.themes.auto'
+
       custom_auto.normal.c.bg = '#24273a'
       custom_auto.inactive.a.bg = '#24273a'
       custom_auto.inactive.b.bg = '#24273a'
@@ -125,9 +126,18 @@ return {
       'nvim-tree/nvim-web-devicons',
     },
     config = function()
+      local nvimTreeFocusOrToggle = function()
+        local nvimTree = require 'nvim-tree.api'
+        local currentBuf = vim.api.nvim_get_current_buf()
+        local currentBufFt = vim.api.nvim_get_option_value('filetype', { buf = currentBuf })
+        if currentBufFt == 'NvimTree' then
+          nvimTree.tree.toggle()
+        else
+          nvimTree.tree.focus()
+        end
+      end
       require('nvim-tree').setup {
-        vim.keymap.set('n', '<leader>o', '<cmd>NvimTreeOpen<CR>', { desc = 'Nvim Tree [O]pen' }),
-        vim.keymap.set('n', '<leader>e', '<cmd>NvimTreeToggle<CR>', { desc = 'Toggle Nvim Tree' }),
+        vim.keymap.set('n', '<leader>e', nvimTreeFocusOrToggle, { desc = 'Toggle Nvim Tree' }),
         vim.keymap.set('n', '<leader>tc', '<cmd>NvimTreeCollapse<CR>', { desc = 'Nvim [T]ree [C]ollapse' }),
         update_focused_file = {
           enable = true,
@@ -135,8 +145,13 @@ return {
         filters = {
           dotfiles = false,
         },
+        filesystem_watchers = {
+          enable = true,
+          debounce_delay = 50,
+          ignore_dirs = { 'node_modules', '**/node_modules', 'vendor', '**/vendor' },
+        },
         view = {
-          width = 50,
+          width = 60,
           side = 'right',
         },
         git = {
@@ -146,6 +161,7 @@ return {
       }
     end,
   },
+
   {
     'mfussenegger/nvim-dap',
     dependencies = {
@@ -233,59 +249,89 @@ return {
       -- Icon customisation
       vim.fn.sign_define('DapBreakpoint', { text = '◎', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
       vim.fn.sign_define('DapStopped', { text = '⌲', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
+      function insert_xdebug()
+        local pos = vim.api.nvim_win_get_cursor(0)[2]
+        local line = vim.api.nvim_get_current_line()
+        local nline = line:sub(0, pos) .. 'xdebug_break();' .. line:sub(pos + 1)
+        vim.api.nvim_set_current_line(nline)
+      end
+
+      vim.keymap.set('n', '<leader>dx', '<cmd>lua insert_xdebug()<cr>')
     end,
   },
   {
-    'zbirenbaum/copilot.lua',
-    cmd = 'Copilot',
+    'github/copilot.vim',
     event = 'InsertEnter',
-    config = function()
-      require('copilot').setup {
-        panel = {
-          enabled = true,
-          auto_refresh = false,
-          keymap = {
-            jump_prev = '[[',
-            jump_next = ']]',
-            accept = '<CR>',
-            refresh = 'gr',
-            open = '<M-CR>',
-          },
-          layout = {
-            position = 'bottom', -- | top | left | right
-            ratio = 0.4,
+  },
+  {
+    'yetone/avante.nvim',
+    event = 'VeryLazy',
+    lazy = false,
+    version = '*', -- Set this to "*" to always pull the latest release version, or set it to false to update to the latest code changes.
+    opts = {
+      -- add any opts here
+      -- for example
+      provider = 'copilot',
+      copilot = {
+        model = 'claude-3.7-sonnet', -- your desired model (or use gpt-4o, etc.)
+        timeout = 30000, -- timeout in milliseconds
+        temperature = 0, -- adjust if needed
+        max_tokens = 4096,
+        -- reasoning_effort = "high" -- only supported for reasoning models (o1, etc.)
+      },
+    },
+    -- auto_suggestion_provider = 'copilot',
+    -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
+    build = 'make',
+    -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
+    behaviour = {
+      auto_suggestions = true, -- Experimental stage
+      auto_set_highlight_group = true,
+      auto_set_keymaps = true,
+      auto_apply_diff_after_generation = false,
+      support_paste_from_clipboard = false,
+      minimize_diff = true, -- Whether to remove unchanged lines when applying a code block
+      enable_token_counting = true, -- Whether to enable token counting. Default to true.
+      enable_cursor_planning_mode = false, -- Whether to enable Cursor Planning Mode. Default to false.
+    },
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+      'stevearc/dressing.nvim',
+      'nvim-lua/plenary.nvim',
+      'MunifTanjim/nui.nvim',
+      --- The below dependencies are optional,
+      'echasnovski/mini.pick', -- for file_selector provider mini.pick
+      'nvim-telescope/telescope.nvim', -- for file_selector provider telescope
+      'hrsh7th/nvim-cmp', -- autocompletion for avante commands and mentions
+      'ibhagwan/fzf-lua', -- for file_selector provider fzf
+      'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
+      'zbirenbaum/copilot.lua', -- for providers='copilot'
+      {
+        -- support for image pasting
+        'HakonHarnes/img-clip.nvim',
+        event = 'VeryLazy',
+        opts = {
+          -- recommended settings
+          default = {
+            embed_image_as_base64 = false,
+            prompt_for_file_name = false,
+            drag_and_drop = {
+              insert_mode = true,
+            },
+            -- required for Windows users
+            use_absolute_path = true,
           },
         },
-        suggestion = {
-          enabled = true,
-          auto_trigger = true,
-          hide_during_completion = true,
-          debounce = 75,
-          keymap = {
-            accept = '<Tab>',
-            accept_word = false,
-            accept_line = false,
-            next = '<M-]>',
-            prev = '<M-[>',
-            dismiss = '<C-]>',
-          },
+      },
+      {
+        -- Make sure to set this up properly if you have lazy=true
+        'MeanderingProgrammer/render-markdown.nvim',
+        opts = {
+          file_types = { 'markdown', 'Avante' },
         },
-        filetypes = {
-          yaml = false,
-          markdown = false,
-          help = false,
-          gitcommit = false,
-          gitrebase = false,
-          hgcommit = false,
-          svn = false,
-          cvs = false,
-          ['.'] = false,
-        },
-        copilot_node_command = 'node', -- Node.js version must be > 18.x
-        server_opts_overrides = {},
-      }
-    end,
-    vim.keymap.set('n', '<leader>cp', '<cmd>lua require("copilot.suggestion").toggle_auto_trigger()<CR>', { desc = 'Toggle Copilot' }),
+        ft = { 'markdown', 'Avante' },
+      },
+    },
   },
   {
     'f-person/git-blame.nvim',
@@ -425,5 +471,52 @@ return {
       },
       -- see below for full list of options 👇
     },
+  },
+  {
+    'EmranMR/tree-sitter-blade',
+    -- load the plugin at startup
+    event = 'VeryLazy',
+    config = function()
+      require('nvim-treesitter.configs').setup {
+        ensure_installed = 'blade',
+        highlight = {
+          enable = true,
+        },
+      }
+    end,
+  },
+  {
+    'windwp/nvim-ts-autotag',
+    event = 'VeryLazy',
+    config = function()
+      require('nvim-ts-autotag').setup {
+        opts = {
+          -- Defaults
+          enable_close = true, -- Auto close tags
+          enable_rename = true, -- Auto rename pairs of tags
+          enable_close_on_slash = false, -- Auto close on trailing </
+        },
+      }
+    end,
+  },
+  {
+    'stevearc/aerial.nvim',
+    opts = {},
+    -- Optional dependencies
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+      'nvim-tree/nvim-web-devicons',
+    },
+    config = function()
+      require('aerial').setup {
+        -- optionally use on_attach to set keymaps when aerial has attached to a buffer
+        on_attach = function(bufnr)
+          -- Jump forwards/backwards with '{' and '}'
+          vim.keymap.set('n', '{', '<cmd>AerialPrev<CR>', { buffer = bufnr })
+          vim.keymap.set('n', '}', '<cmd>AerialNext<CR>', { buffer = bufnr })
+        end,
+      }
+      vim.keymap.set('n', '<leader>o', '<cmd>AerialToggle!<CR>')
+    end,
   },
 }
